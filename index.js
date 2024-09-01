@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/views/index.html');
 });
 
-mongoose.createConnection(env.MONGODB_URL);
+mongoose.createConnection(process.env.MONGODB_URL);
 
 const UserModel = mongoose.model('User', new mongoose.Schema({ username: { type: String, required: true } }));
 const ExerciseModel = mongoose.model('Exercise', new mongoose.Schema({
