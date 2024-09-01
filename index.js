@@ -19,7 +19,7 @@ const ExerciseModel = mongoose.model('Exercise', new mongoose.Schema({
 	username: String,
 	description: String,
 	duration: Number,
-	date: Date,
+	date: String,
 	id: String
 }));
 
@@ -84,6 +84,10 @@ app.post("/api/users/:_id/exercises", async function(req, res, next) {
 });
 
 app.get("/api/users/:_id/logs", async function(req, res, next) {
+	let from = new Date(req.params.from);
+	let to = new Date(req.params.to);
+	let limit = req.params.limit;
+
 	let user = "";
 	let id = req.params._id;
 	let exercises = [];
@@ -103,14 +107,20 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 			return;
 		}
 
-		exercises = data;
+		if(from && !to) {
+			exercises = data.filter((exercise) => new Date(exercise.date) >= from);
+		} else if(from && to) {
+			exercises = data.filter((exercise) => new Date(exercise.date) >= from && new Date(exercise.date) <= to);
+		} else {
+			exercises = data;
+		}
 	});
 
 	res.json({
 		"username": user,
 		"count": exercises.length,
 		"_id": id,
-		"log": [exercises]
+		"log": [(!limit) ? exercises : exercises.slice(0, limit)]
 	});
 });
 
