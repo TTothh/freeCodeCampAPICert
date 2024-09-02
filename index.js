@@ -58,31 +58,33 @@ app.post("/api/users", async function(req, res, next) {
 });
 
 app.post("/api/users/:_id/exercises", async function(req, res, next) {
-	let id = req.body._id;
-	let user = {}
+	let id = req.body[":_id"];
+	let date = ((!req.body.date) ? new Date().toDateString() : new Date(req.body.date).toDateString());
+	let user = "";
 
-	await ExerciseModel.create({
-		username: req.body.username,
-		description: req.body.description,
-		duration: req.body.duration,
-		date: ((!req.body.date) ? new Date().toDateString() : new Date(req.body.date).toDateString()),
-		id: req.body._id
-	});
-
-	await UserModel.findOne({"id": id}).then((data) => {
-		user = data;
+	await UserModel.findOne({"_id": id}).select("username").exec().then((data) => {
+		user = data.username;
 	}).catch((err) => {
-		console.error(err)
+		console.error(err);
 		res.json({"error": "user not found"});
 		return;
 	});
 
+	await ExerciseModel.create({
+		username: user,
+		description: req.body.description,
+		duration: req.body.duration,
+		date: date,
+		id: id
+	});
+
+
 	res.json({
-		"username": user.username,
-		"description": req.body.description,
+		"_id": id,
+		"username": user,
+		"date": date,
 		"duration": req.body.duration,
-		"date": new Date(req.body.date).toDateString(),
-		"_id": id
+		"description": req.body.description
 	})
 });
 
@@ -92,10 +94,10 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 	let limit = req.params.limit;
 
 	let user = "";
-	let id = req.params._id;
+	let id = req.params["_id"];
 	let exercises = [];
 
-	await UserModel.findOne({"id": req.params._id}).then((data) => {
+	await UserModel.findOne({"_id": id}).then((data) => {
 		user = data.username;
 	}).catch((err) => {
 		console.error(err)
@@ -103,10 +105,12 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 		return;
 	});
 
-	await ExerciseModel.findOne({"id": id}).select(["description", "duration", "date"]).then((data) => {
-		if(from && !to) {
+	await ExerciseModel.find({"id": id}).select(["description", "duration", "date"]).then((data) => {
+		if(Date.parse(from) && !Date.parse(to)) {
+			console.log(data)
 			exercises = data.filter((exercise) => new Date(exercise.date) >= from);
-		} else if(from && to) {
+		} else if(Date.parse(from) && Date.parse(to)) {
+			console.log(data)
 			exercises = data.filter((exercise) => new Date(exercise.date) >= from && new Date(exercise.date) <= to);
 		} else {
 			exercises = data;
@@ -118,10 +122,10 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 	});
 
 	res.json({
+		"_id": id,
 		"username": user,
 		"count": exercises.length,
-		"_id": id,
-		"log": [(!limit) ? exercises : exercises.slice(0, limit)]
+		"log": (!limit) ? exercises : exercises.slice(0, limit)
 	});
 });
 
