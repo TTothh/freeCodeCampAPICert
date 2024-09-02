@@ -48,7 +48,8 @@ app.post("/api/users", async function(req, res, next) {
 
 	await UserModel.create({username: user});
 
-	await UserModel.find({username: user}).select("username _id").then((data) => {
+	await UserModel.findOne({username: user}).select("username _id").then((data) => {
+		console.log(data);
 		res.json({"username": data.username, "_id": data._id});
 	}).catch((err) => {
 		console.error(err)
@@ -70,7 +71,7 @@ app.post("/api/users/:_id/exercises", async function(req, res, next) {
 		id: req.body._id
 	});
 
-	await UserModel.find({"id": id}).then((data) => {
+	await UserModel.findOne({"id": id}).then((data) => {
 		user = data;
 	}).catch((err) => {
 		console.error(err)
@@ -96,7 +97,7 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 	let id = req.params._id;
 	let exercises = [];
 
-	await UserModel.find({"id": req.params._id}).then((data) => {
+	await UserModel.findOne({"id": req.params._id}).then((data) => {
 		user = data.username;
 	}).catch((err) => {
 		console.error(err)
@@ -104,7 +105,7 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 		return;
 	});
 
-	await ExerciseModel.find({"id": id}).select("description duration date").then((data) => {
+	await ExerciseModel.findOne({"id": id}).select("description duration date").then((data) => {
 		if(from && !to) {
 			exercises = data.filter((exercise) => new Date(exercise.date) >= from);
 		} else if(from && to) {
