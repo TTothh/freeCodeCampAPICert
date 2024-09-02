@@ -35,7 +35,7 @@ app.use(bodyparser.json());
 
 app.get("/api/users", function(req, res, next) {
 	UserModel.find().select(["username", "_id"]).then((data) => {
-		res.json({data});
+		res.json(data);
 	}).catch((err) => {
 		console.error(err);
 		res.json({"error": "user not found"});
@@ -60,7 +60,6 @@ app.post("/api/users", async function(req, res, next) {
 app.post("/api/users/:_id/exercises", async function(req, res, next) {
 	let id = req.body._id;
 	let user = {}
-	let exercise = {}
 
 	await ExerciseModel.create({
 		username: req.body.username,
