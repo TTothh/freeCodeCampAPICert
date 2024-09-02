@@ -15,14 +15,14 @@ app.get('/', (req, res) => {
 const conn = mongoose.createConnection(process.env.MONGODB_URL);
 conn.on('connected', () => console.log('connected'));
 
-const UserModel = mongoose.model('User', new mongoose.Schema({
+const UserModel = conn.model('User', new mongoose.Schema({
 	username: {
 		type: String,
 		required: true
 	}
 }));
 
-const ExerciseModel = mongoose.model('Exercise', new mongoose.Schema({
+const ExerciseModel = conn.model('Exercise', new mongoose.Schema({
 	username: String,
 	description: String,
 	duration: Number,
