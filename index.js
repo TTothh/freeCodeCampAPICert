@@ -27,28 +27,26 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 
 app.get("/api/users", function(req, res, next) {
-	UserModel.find().select("username, _id").exec((err, data) => {
-		if(err) {
-			res.json({"error": "user not found"});
-			return;
-		}
-
+	UserModel.find().select("username, _id").then((data) => {
 		res.json({data});
+	}).catch((err) => {
+		console.error(err);
+		res.json({"error": "user not found"});
+		return;
 	});
 });
 
-app.post("/api/users", async function(req, res, next) {
+app.post("/api/users", function(req, res, next) {
 	let user = req.body.username;
 
-	await UserModel.create({username: user});
+	UserModel.create({username: user});
 
-	UserModel.find({username: user}).select("username _id").exec((err, data) => {
-		if(err) {
-			res.json({"error": "user not found"});
-			return;
-		}
-
+	UserModel.find({username: user}).select("username _id").then((data) => {
 		res.json({"username": data.username, "_id": data._id});
+	}).catch((err) => {
+		console.error(err)
+		res.json({"error": "user not found"});
+		return;
 	});
 });
 
@@ -65,13 +63,12 @@ app.post("/api/users/:_id/exercises", async function(req, res, next) {
 		id: req.body._id
 	});
 
-	await UserModel.find({"id": id}).exec((err, data) => {
-		if(err) {
-			res.json({"error": "user not found"});
-			return;
-		}
-
+	await UserModel.find({"id": id}).then((data) => {
 		user = data;
+	}).catch((err) => {
+		console.error(err)
+		res.json({"error": "user not found"});
+		return;
 	});
 
 	res.json({
@@ -92,21 +89,15 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 	let id = req.params._id;
 	let exercises = [];
 
-	await UserModel.find({"id": req.params._id}).exec((err, data) => {
-		if(err) {
-			res.json({"error": "user not found"});
-			return;
-		}
-
+	await UserModel.find({"id": req.params._id}).then((data) => {
 		user = data.username;
+	}).catch((err) => {
+		console.error(err)
+		res.json({"error": "user not found"});
+		return;
 	});
 
-	await ExerciseModel.find({"id": id}).select("description duration date").exec((err, data) => {
-		if(err) {
-			res.json({"error": "user not found"});
-			return;
-		}
-
+	await ExerciseModel.find({"id": id}).select("description duration date").then((data) => {
 		if(from && !to) {
 			exercises = data.filter((exercise) => new Date(exercise.date) >= from);
 		} else if(from && to) {
@@ -114,6 +105,9 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 		} else {
 			exercises = data;
 		}
+	}).catch((err) => {
+		res.json({"error": "user not found"});
+		return;
 	});
 
 	res.json({
