@@ -34,7 +34,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 
 app.get("/api/users", function(req, res, next) {
-	UserModel.find().select("username _id").then((data) => {
+	UserModel.find().select(["username", "_id"]).then((data) => {
 		res.json({data});
 	}).catch((err) => {
 		console.error(err);
@@ -48,8 +48,7 @@ app.post("/api/users", async function(req, res, next) {
 
 	await UserModel.create({username: user});
 
-	await UserModel.findOne({username: user}).select("username _id").then((data) => {
-		console.log(data);
+	await UserModel.findOne({username: user}).select(["username", "_id"]).then((data) => {
 		res.json({"username": data.username, "_id": data._id});
 	}).catch((err) => {
 		console.error(err)
@@ -67,7 +66,7 @@ app.post("/api/users/:_id/exercises", async function(req, res, next) {
 		username: req.body.username,
 		description: req.body.description,
 		duration: req.body.duration,
-		date: ((!req.body.date) ? new Date().toDateString() : req.body.date.toDateString()),
+		date: ((!req.body.date) ? new Date().toDateString() : new Date(req.body.date).toDateString()),
 		id: req.body._id
 	});
 
@@ -83,7 +82,7 @@ app.post("/api/users/:_id/exercises", async function(req, res, next) {
 		"username": user.username,
 		"description": req.body.description,
 		"duration": req.body.duration,
-		"date": req.body.date.toDateString(),
+		"date": new Date(req.body.date).toDateString(),
 		"_id": id
 	})
 });
@@ -105,7 +104,7 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 		return;
 	});
 
-	await ExerciseModel.findOne({"id": id}).select("description duration date").then((data) => {
+	await ExerciseModel.findOne({"id": id}).select(["description", "duration", "date"]).then((data) => {
 		if(from && !to) {
 			exercises = data.filter((exercise) => new Date(exercise.date) >= from);
 		} else if(from && to) {
@@ -114,6 +113,7 @@ app.get("/api/users/:_id/logs", async function(req, res, next) {
 			exercises = data;
 		}
 	}).catch((err) => {
+		console.error(err);
 		res.json({"error": "user not found"});
 		return;
 	});
