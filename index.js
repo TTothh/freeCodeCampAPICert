@@ -12,9 +12,16 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/views/index.html');
 });
 
-mongoose.createConnection(process.env.MONGODB_URL);
+const conn = mongoose.createConnection(process.env.MONGODB_URL);
+conn.on('connected', () => console.log('connected'));
 
-const UserModel = mongoose.model('User', new mongoose.Schema({ username: { type: String, required: true } }));
+const UserModel = mongoose.model('User', new mongoose.Schema({
+	username: {
+		type: String,
+		required: true
+	}
+}));
+
 const ExerciseModel = mongoose.model('Exercise', new mongoose.Schema({
 	username: String,
 	description: String,
@@ -36,12 +43,12 @@ app.get("/api/users", function(req, res, next) {
 	});
 });
 
-app.post("/api/users", function(req, res, next) {
+app.post("/api/users", async function(req, res, next) {
 	let user = req.body.username;
 
-	UserModel.create({username: user});
+	await UserModel.create({username: user});
 
-	UserModel.find({username: user}).select("username _id").then((data) => {
+	await UserModel.find({username: user}).select("username _id").then((data) => {
 		res.json({"username": data.username, "_id": data._id});
 	}).catch((err) => {
 		console.error(err)
