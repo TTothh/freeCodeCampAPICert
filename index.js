@@ -34,7 +34,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 
 app.get("/api/users", function(req, res, next) {
-	UserModel.find().select("username, _id").then((data) => {
+	UserModel.find().select("username _id").then((data) => {
 		res.json({data});
 	}).catch((err) => {
 		console.error(err);
